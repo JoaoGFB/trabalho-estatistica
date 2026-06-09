@@ -168,3 +168,14 @@ def calcular_qui_quadrado(matriz_observada):
     gl = (linhas - 1) * (colunas - 1)
     
     return qui_quadrado, gl
+
+def encontrar_voto_menor(valores):
+    voto_menor = 0
+
+    for i in range(1, len(valores)):
+        if valores[i] < valores[voto_menor]:
+            voto_menor = i
+
+    return voto_menor
+
+

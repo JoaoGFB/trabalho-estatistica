@@ -8,7 +8,8 @@ from calculos_estatisticos import (
     calcular_assimetria_pearson,
     calcular_correlacao_pearson_xy,
     calcular_regressao_linear,
-    calcular_qui_quadrado
+    calcular_qui_quadrado,
+    encontrar_voto_menor
 )
 
 st.set_page_config(page_title="Análise IMDB", layout="wide")
@@ -183,3 +184,14 @@ if p_valor_chi < 0.05:
     st.success(f"Como o p-valor ({p_valor_chi:.2e}) é menor que 0.05, **rejeita-se a Hipótese Nula (H₀)**. Fica provada a associação estatisticamente significativa entre o gênero principal da série e sua faixa de avaliação.")
 else:
     st.warning("Falha em rejeitar H₀. Não há associação significativa.")
+
+
+#Menor número de votos
+votos_top100 = top_100_df['numVotes'].tolist()
+indice_voto_menor = encontrar_voto_menor(votos_top100)
+
+st.dataframe(
+    top_100_df.iloc[[indice_voto_menor]][
+        ['Rank', 'primaryTitle', 'numVotes', 'averageRating']
+    ]
+)
