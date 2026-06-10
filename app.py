@@ -145,7 +145,7 @@ col_r2.metric("Coeficiente de Determinação (R²)", f"{r_quadrado:.4f}")
 col_r3.metric("P-Valor", f"{p_valor_reg:.2e}")
 
 st.subheader("Discussão:")
-st.info(f"Observou-se uma correlação positiva fraca entre o número de votos e a avaliação média das séries. O coeficiente de determinação (R² = {r_quadrado:.4f}) indica que cerca de {r_quadrado*100:.2f}% da variação das notas pode ser explicada pela popularidade medida pelo número de votos. Apesar da força da relação ser baixa, o p-valor pequeno ({p_valor_reg:.2e}) indica forte significância estatística.")
+st.info(f"Observou-se uma correlação positiva fraca entre o número de votos e a avaliação média das séries. O coeficiente de determinação (R² = {r_quadrado:.4f}) indica que cerca de {r_quadrado*100:.2f}% da variação das notas pode ser explicada pela popularidade medida pelo número de votos. Apesar da força da relação ser baixa, o p-valor pequeno ({p_valor_reg:.2e}) indica que a relação dificilmente ocorreu ao acaso.")
 
 st.divider()
 st.subheader("Predição (Votos + Gênero)")
