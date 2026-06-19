@@ -177,4 +177,10 @@ def encontrar_voto_menor(valores):
 
     return voto_menor
 
+def encontrar_voto_maior(valores):
+    voto_maior = 0
+    for i in range(1, len(valores)):
+        if valores[i] > valores[voto_maior]:
+            voto_maior = i
 
+    return voto_maior
