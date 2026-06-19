@@ -10,7 +10,7 @@ from calculos_estatisticos import (
     calcular_correlacao_pearson_xy,
     calcular_regressao_linear,
     calcular_qui_quadrado,
-    encontrar_voto_menor
+    encontrar_voto_menor,
     encontrar_voto_maior
 )
 
