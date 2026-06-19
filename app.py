@@ -11,6 +11,7 @@ from calculos_estatisticos import (
     calcular_regressao_linear,
     calcular_qui_quadrado,
     encontrar_voto_menor
+    encontrar_voto_maior
 )
 
 st.set_page_config(page_title="Análise IMDB", layout="wide")
@@ -86,6 +87,15 @@ st.dataframe(
     ]
 )
 
+st.subheader("Série com o maior número de votos no Top 100")
+votos_top100 = top_100_df['numVotes'].tolist()
+indice_voto_maior = encontrar_voto_maior(votos_top100)
+
+st.dataframe(
+    top_100_df.iloc[[indice_voto_maior]][
+        ['Rank', 'primaryTitle', 'numVotes', 'averageRating']
+    ]
+)
 st.divider()
 st.header("Associação: Gênero Principal vs Avaliação (Teste Qui-Quadrado)")
 
