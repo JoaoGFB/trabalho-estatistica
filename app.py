@@ -13,6 +13,7 @@ from calculos_estatisticos import (
     encontrar_voto_menor,
     encontrar_voto_maior
 )
+from collections import Counter
 
 st.set_page_config(page_title="Análise IMDB", layout="wide")
 
@@ -220,3 +221,156 @@ if len(votos_gen) > 1:
         st.write(f"Equação do Rank: $y = {a_rank:.4f} + {b_rank:.8f}x$")
 else:
     st.error(f"Amostragem insuficiente (n = {len(votos_gen)}) para o gênero '{genero_escolhido}'. É impossível traçar uma reta de regressão.")
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv("top_100_tv_shows.csv")
+    rows = []
+    for _, row in df.iterrows():
+        if pd.isna(row["directors"]):
+            continue
+        for d in [n.strip() for n in row["directors"].split(",") if n.strip()]:
+            rows.append({
+                "director": d,
+                "show": row["primaryTitle"],
+                "rating": row["averageRating"],
+                "rank": row["rank"],
+            })
+    ddf = pd.DataFrame(rows).drop_duplicates(subset=["director", "show"])
+    summary = ddf.groupby("director").agg(
+        num_shows=("show", "count"),
+        avg_rating=("rating", "mean"),
+        shows=("show", list),
+        ratings=("rating", list),
+    ).reset_index()
+    result = (
+        summary[summary["num_shows"] >= 5]
+        .sort_values("avg_rating", ascending=False)
+        .reset_index(drop=True)
+    )
+    result.index += 1
+    return result
+
+df_result = load_data()
+
+st.title("🎬 Diretores com Melhor Média por Série")
+st.markdown("Ranking dos diretores das **Top 100 séries do IMDb** com participação em **5 ou mais séries**.")
+
+with st.expander("📐 Como o cálculo foi feito?", expanded=True):
+    st.markdown("""
+**Fonte dos dados:** arquivo `top_100_tv_shows.csv` com as 100 séries mais bem avaliadas do IMDb.
+
+**Passos do cálculo:**
+
+1. **Extração dos diretores** — cada série pode ter múltiplos diretores listados separados por vírgula na coluna `directors`. Cada nome foi separado individualmente.
+
+2. **Deduplicação por série** — um diretor pode aparecer listado mais de uma vez na mesma série (episódios diferentes). Para evitar que isso influe na média, cada par *(diretor × série)* foi contado **apenas uma vez**.
+
+3. **Filtro de participação** — foram mantidos apenas os diretores com participação em **5 ou mais séries distintas**.
+
+4. **Cálculo da média** — para cada diretor, calculou-se a **média aritmética simples** das notas (`averageRating`) de todas as séries em que participou:
+
+$$\\bar{x} = \\frac{\\sum_{i=1}^{n} r_i}{n}$$
+
+onde $r_i$ é a nota da série $i$ e $n$ é o número de séries.
+
+5. **Ordenação** — os diretores foram ordenados do maior para o menor valor de média.
+    """)
+
+st.markdown("---")
+
+st.subheader("🏆 Pódio — Top 3")
+medals = ["🥇", "🥈", "🥉"]
+cols = st.columns(3)
+for i, col in enumerate(cols):
+    row = df_result.iloc[i]
+    with col:
+        st.markdown(f"### {medals[i]} {row['director']}")
+        st.metric("Média de Avaliação", f"{row['avg_rating']:.3f}")
+        st.caption(f"Participou de **{row['num_shows']}** séries")
+
+st.markdown("---")
+
+st.subheader("📋 Ranking Completo")
+
+display_df = df_result[["director", "num_shows", "avg_rating"]].copy()
+display_df.columns = ["Diretor", "Nº de Séries", "Média de Avaliação"]
+display_df["Média de Avaliação"] = display_df["Média de Avaliação"].map("{:.3f}".format)
+display_df.index.name = "Posição"
+
+st.dataframe(display_df, use_container_width=True)
+
+st.markdown("---")
+
+st.subheader("🔍 Detalhe por Diretor")
+selected = st.selectbox(
+    "Selecione um diretor para ver as séries em que participou:",
+    options=df_result["director"].tolist(),
+    format_func=lambda x: f"{df_result[df_result['director'] == x].index[0]}º — {x}"
+)
+
+row = df_result[df_result["director"] == selected].iloc[0]
+detail_df = pd.DataFrame({
+    "Série": row["shows"],
+    "Nota IMDb": [f"{r:.1f}" for r in row["ratings"]]
+}).sort_values("Nota IMDb", ascending=False).reset_index(drop=True)
+detail_df.index += 1
+
+col_a, col_b = st.columns([2, 1])
+with col_a:
+    st.dataframe(detail_df, use_container_width=True)
+with col_b:
+    st.metric("Média geral", f"{row['avg_rating']:.3f}")
+    st.metric("Total de séries", int(row["num_shows"]))
+    st.metric("Nota mais alta", f"{max(row['ratings']):.1f}")
+    st.metric("Nota mais baixa", f"{min(row['ratings']):.1f}")
+
+st.title("🎬 Top 100 TV Shows — IMDb")
+st.markdown("Análise dos **Top 5 Diretores** e **Top 5 Escritores** mais presentes nas séries mais bem avaliadas.")
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv("top_100_tv_shows.csv")
+    return df
+
+df = load_data()
+
+def count_names(series):
+    all_names = []
+    for entry in series.dropna():
+        names = [n.strip() for n in entry.split(",") if n.strip()]
+        all_names.extend(names)
+    return Counter(all_names)
+
+director_counts = count_names(df["directors"])
+writer_counts = count_names(df["writers"])
+
+top5_directors = director_counts.most_common(5)
+top5_writers = writer_counts.most_common(5)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("🎥 Top 5 Diretores")
+    st.markdown("---")
+    for i, (name, count) in enumerate(top5_directors, start=1):
+        medal = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i - 1]
+        st.markdown(f"**{medal} {i}. {name}**")
+        st.progress(count / top5_directors[0][1])
+        st.caption(f"{count} aparição{'ões' if count > 1 else ''}")
+        st.markdown("")
+
+with col2:
+    st.subheader("✍️ Top 5 Escritores")
+    st.markdown("---")
+    for i, (name, count) in enumerate(top5_writers, start=1):
+        medal = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i - 1]
+        st.markdown(f"**{medal} {i}. {name}**")
+        st.progress(count / top5_writers[0][1])
+        st.caption(f"{count} aparição{'ões' if count > 1 else ''}")
+        st.markdown("")
+
+st.markdown("---")
+
+with st.expander("📋 Ver dados brutos"):
+    st.dataframe(df[["primaryTitle", "startYear", "averageRating", "directors", "writers"]].reset_index(drop=True))
