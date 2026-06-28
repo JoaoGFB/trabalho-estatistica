@@ -44,3 +44,10 @@ streamlit run app.py
 ```
 
 O Streamlit abrirá a aplicação no navegador (por padrão em `http://localhost:8501`).
+
+##Feito por
+Gabriel Dorta Marques
+João Gabriel Ferreira Borges
+Yuri Lotz Brun
+João Paulo Moro Venancio da Silva
+José Ronaldo dos Santos Junior
