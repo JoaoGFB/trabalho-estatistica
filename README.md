@@ -13,7 +13,7 @@ disponível na plataforma Kaggle.
 1. Clone o repositório e entre na pasta do projeto:
 
    ```bash
-   git clone <url-do-repositorio>
+   git clone https://github.com/JoaoGFB/trabalho-estatistica
    cd trabalho-estatistica
    ```
 
